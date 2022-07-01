@@ -1,3 +1,3 @@
-![alt text](images/logo_colour.png)
+![alt text](images/banner.svg)
 
 Website for Streams 22 workshop
