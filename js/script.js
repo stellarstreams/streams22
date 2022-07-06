@@ -78,7 +78,7 @@ window.addEventListener('scroll', function() {
         menu.style.top = '0px';
         menu.style.backgroundColor='#222222';
         toplabel.style.top = '-200px';
-        constraints.style.top = '-70%';
+        constraints.style.top = '-90%';
         btn.addClass('show');
         btnw.href="#";
     } else {
@@ -88,6 +88,6 @@ window.addEventListener('scroll', function() {
         constraints.style.top = '0px';
         toplabel.style.top = '0px';
         btn.removeClass('show');
-        btnw.href="#idea";
+        btnw.href="#motivation";
     }
 });
