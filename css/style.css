@@ -59,8 +59,8 @@ a:hover{
   transition: background-color .3s, opacity .5s, visibility .5s;
   visibility: visible;
   z-index: 1000;
-  -webkit-animation: 7s ease 0s normal forwards 1 fadein;
-  animation: 7s ease 0s normal forwards 1 fadein;
+  -webkit-animation: 2s ease 0s normal forwards 1 fadein;
+  animation: 2s ease 0s normal forwards 1 fadein;
 }
 #buttonwrap a{
   text-decoration: none;
@@ -121,8 +121,8 @@ a:hover{
     z-index: 10;
     transition:1s;/* your transition */
     margin-right:5%;
-    -webkit-animation: 5s ease 0s normal forwards 1 fadein;
-    animation: 5s ease 0s normal forwards 1 fadein;
+    -webkit-animation: 1s ease 0s normal forwards 1 fadein;
+    animation: 1s ease 0s normal forwards 1 fadein;
 }
 
 #toplabel p {
@@ -137,8 +137,8 @@ a:hover{
     background: transparent;
     pointer-events: none;
     transition:1s;/* your transition */
-    -webkit-animation: 4s ease 0s normal forwards 1 fadein;
-    animation: 4s ease 0s normal forwards 1 fadein;
+    -webkit-animation: 3s ease 0s normal forwards 1 fadein;
+    animation: 3s ease 0s normal forwards 1 fadein;
 }
 #constraints p {
   top:calc(50% + 12.3vw);
@@ -182,8 +182,8 @@ a:hover{
     width: 100%;
     text-align: center;
     z-index: 10;
-    -webkit-animation: 6s ease 0s normal forwards 1 slideup;
-    animation: 6s ease 0s normal forwards 1 slideup;
+    -webkit-animation: 1s ease 0s normal forwards 1 slideup;
+    animation: 1s ease 0s normal forwards 1 slideup;
 }
 
 #menu a {
