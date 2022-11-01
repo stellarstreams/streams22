@@ -1,17 +1,24 @@
 import numpy as np
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import SkyCoord, CoordFrame
 
 #notes on data types
 dtypes_dict = {
 	#identifiers
 	'sourceID': 'u8', #Gaia DR3 source id, unsigned integer
-	'sourceID_spec': 's3', #which version of gaia catalog the source ID refers to
+	'sourceID_version': 'u2', #integer representing version of gaia catalog that the source ID refers to
 	'streamID': 's10', #10-char string? check galstreams
 	'crossmatches':dict(), #dictionary to store IDs in other surveys
 
 	#phase space
 	'w': SkyCoord(), #phase space coordinates
 	'w_uncert': SkyCoord(), #uncertainties?
+
+	#precompute and store phi1 and phi2 for a desired coordinate frame
+	'phi1': 'f8'
+	'phi2': 'f8'
+	'rotation': CoordFrame() #placeholder
+
+	#flag for variable stars
 	'variability': 'u2', #0 if not variable, 1 if variable
 
 	#photometry from Gaia used for selections in pawprint
@@ -40,6 +47,8 @@ dtypes_dict = {
 		''
 	}
 
+	#TODO: membership likelihoods
+
 }
 
 def get_phase_space():
@@ -53,9 +62,9 @@ def get_abundances():
 
 class starMeasurementClass(dict):
 	'''dictionary class to store __measured__ attributes for one star in the catalog'''
-    def __init__(self, options): #how to specify options for initialization? 
+    def __init__(self, **options): #how to specify options for initialization? 
     	self.sourceID = np.uint(0)
-    	self.sourceID_spec = np.str_('DR3') #default for now
+    	self.sourceID_version = np.uint(3) #default for now is DR3
     	self.streamID = np.str_('')
     	self.crossmatches = {}
 
@@ -83,11 +92,21 @@ class starMeasurementClass(dict):
 			'variability': ['']
     	}
     	
+    	#some stuff could be read directly and stored
     	get_gaia_photometry(self) #load gaia photometry in from catalog
     	get_abundances(self) #load abundances from detailed spectroscopoc tables
 
-
-
 class starPredictionClass(dict):
 	'''dictionary class to store __predicted/modeled__ attributes for one star in the catalog'''
+
+
+
+def _inside_poly(data, vertices):
+        '''This function takes a list of points (data) and returns a boolean mask that is True for all points inside the polygon defined by vertices'''
+        return mpl_path(vertices).contains_points(data)
+
+def in_pawprint(self, pawprint):
+        '''take in some data and return masks for stuff in the pawprint (basically by successively applying _inside_poly)'''
+
+
 

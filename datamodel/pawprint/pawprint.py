@@ -1,4 +1,6 @@
 from matplotlib.path import Path as mpl_path
+from galstreams import Track6D
+
 
 class trackClass(): #borrow from galstreams?
 
