@@ -1,34 +1,100 @@
+import galstreams as gst
 from matplotlib.path import Path as mpl_path
-from galstreams import Track6D
+from astropy.coordinates import CoordFrame #shorthand
+
+#use ecsv for polygon specification?
+#asdf packages these together 
 
 
-class trackClass(): #borrow from galstreams?
+class densityClass: #TODO: how to represent densities?
+
+class Footprint2D(dict):
+    def __init__(self, vertex_coordinates, footprint_type):
+        if footprint_type='sky':
+            #steal Cecilia's implementation from galstreams and return mpl_path and vertices in skycoords
+            self.vertices = SkyCoord(vertex_coordinates)
+
+        if footprint_type='cartesian':
+            #should return a mpl_path and vertices in regular old cartesian coords
+            self.vertices = vertex_coordinates
+
+        self.poly = mpl_path(vertices)
+
+    @classmethod
+    def from_vertices(cls, vertex_coordinates, footprint_type):
+        return cls(vertices,footprint_type)
+
+    @classmethod
+    def from_box(cls, min1, max1, min2, max2, footprint_type):
+        vertices = get_vertices_from_box(min1, max1, min2, max2)
+        return cls(vertices,footprint_type)
+
+    @classmethod
+    def from_file(cls,fname):
+        with ecsv.load(fname) as f:
+            vertices = f['vertices']
+            footprint_type = f['footprint_type']
+        return cls(vertices,footprint_type)
+
+    def get_vertices_from_box(min1, max1, min2, max2):
+        return [[min1,min2],[min1,max2],[max1,min2],[max1,max2]]
+
+    def save(fname):
+        #TODO - save as .ecsv
+
+
+
 
 class pawprintClass(dict):
-    '''Dictionary class to store a "pawprint": polygons in multiple observational spaces that define an initial selection used for stream track modeling, membership calculation / density modeling, or background modeling.'''
-
-    def __init__(self):
-        self.skyprint = {} #polygon(s) in stream coordinates phi1, phi2? or angular width along track as fn of phi1?
-        self.streamspec = {} #rotation matrix to transform from ??? to phi1/phi2
-        self.cmdprint = {} #polygon(s) in cmd space
-        self.cmdspec = {} #some kind of specification for which colors and mags?
-        self.pmprint = {} #polygon(s) in proper-motion space
-        self.pmspec = {} #some way to specify which PM coordinates the polygons are functions of
-
-        #do we want to put tracks in here too? or have separate model for those?
-        self.skytrack = {} #polynomial function returns phi2(phi1)
-        self.cmdtrack = {} #polynomial function returns ??
-        self.pmtrack = {} #polynomial functions return [pm1, pm2](phi1)
-        self.distancetrack = {} #polynomial function returns distance(phi1)
-        self.rvtrack = {} #polynomial function returns rv(phi1)
+    '''Dictionary class to store a "pawprint": 
+        polygons in multiple observational spaces that define the initial selection 
+        used for stream track modeling, 
+        membership calculation / density modeling, and background modeling.
         
-    def _inside_poly(data, vertices):
-        '''This function takes a list of points (data) and returns a boolean mask that is True for all points inside the polygon defined by vertices'''
-        return mpl_path(vertices).contains_points(data)
+        New convention: everything is in phi1 phi2 (don't cross the streams)
 
-    def in_pawprint(self, data):
-        '''take in some data and return masks for stuff in the pawprint (basically by successively applying _inside_poly)'''
+        '''
 
+    def __init__(self, stream_name, pawprint_ID, from_galstreams=True):
+        
+        #we need a way to specify and load the vertices for the footprints. 
+        #How do we want to do it? 
+        #I sketched here passing the name of the stream 
+        #but we could also pass a list of vertices provided by WG2/3
+
+        self.stream_name = stream_name
+        self.pawprint_ID = pawprint_ID
+        self.stream_frame = CoordFrame(self,input_data_specifier?)
+
+                #right now loading tracks via galstreams, later include updates to track
+        if from_galstreams:
+            track_file = _make_track_file_name(stream_name,pawprint_ID) #todo
+            summary_file = _make_summary_file_name(stream_name,pawprint_ID) #todo
+            self.track = gst.Track6D(stream_name, track_file, summary_file)
+
+        self.width = 0.0#(lambda phi1: return width(phi1))
+
+
+
+        stream_vertices,background_vertices = load_sky_vertices(self)
+
+        self.skyprint = {'stream':Footprint2D(stream_vertices,type='sky'), 
+                        'background':Footprint2D(background_vertices,type='sky')} 
+                        #write new thing to rept footprint a la galstreams, but for any 2 
+
+        
+
+        #WG3: how to implement distance dependence in isochrone selections?
+        self.cmd_filters = {'poly1':['g', 'bprp'], 'poly2':['h','jk']} # list of which filters are in which footprint in the list. need to match keys in starlist
+        self.cmdprint = {'poly1':Footprint2D(load_cmd_vertices(self,'poly1'),type='cartesian'),...} #polygon(s) in cmd space
+ 
+
+        self.pmprint = {} = Footprint2D(load_pm_vertices(self),type='sky') #polygon(s) in proper-motion space mu_phi1, mu_phi2
+
+
+        
+
+    
     def save_pawprint(self):
-        '''save as YAML (Eduardo)'''
+        '''TODO: save as YAML (Eduardo)'''
 
