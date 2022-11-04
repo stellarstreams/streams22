@@ -1,0 +1,142 @@
+<link rel="stylesheet" href="https://aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.css" />
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.12.1.min.js" charset="utf-8"></script>
+<script type="text/javascript" src="papaparse.min.js" charset="utf-8"></script>
+
+<div id='infoDiv' style="font-size: 40px">&nbsp;</div>
+<div id="aladin-lite-div" style="width:600px;height:600px;"></div>
+<script type="text/javascript" src="https://aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.js" charset="utf-8"></script>
+<select id="selectStreams" onchange="updateSelect(this);">
+    <option>Choose a stream</option>
+</select>
+
+<script type="text/javascript">
+
+    var galstreams_page = 'https://raw.githubusercontent.com/cmateu/galstreams/master/';
+    // var galstreams_page = 'file:///Users/jls/Documents/work/conferences/streams21/galstreams/';
+
+    var aladin = A.aladin('#aladin-lite-div',
+                          {survey: "P/2MASS/color", fov:180,
+                           cooFrame:"galactic",
+                           target: "Galactic Center"}
+                          );
+
+    function getRandomColor() {
+      var letters = '0123456789ABCDEF';
+      var color = '#';
+      for (var i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 12)+4];
+      }
+      return color;
+    }
+
+    function get_track(file) {
+
+        var tracks_dir = galstreams_page+"galstreams/tracks/";
+
+        var arr = [];
+        Papa.parse(tracks_dir+file, {
+            download: true,
+            comments: '#',
+            dynamicTyping: true,
+            header: true,
+            complete: function(dataset) {
+                var L = dataset.data.length-1;
+                // L = 12000;
+                for(var i=0; i<L; i++) {
+                    // console.log(dataset.data[i].ra,dataset.data[i].dec);
+                   arr.push([dataset.data[i].ra,dataset.data[i].dec]);
+                }
+            }
+        });
+        return arr;
+    }
+    function get_summary(file) {
+
+        var tracks_dir = galstreams_page+"galstreams/tracks/";
+        var data=[];
+        Papa.parse(tracks_dir+file, {
+            download: true,
+            comments: '#',
+            dynamicTyping: true,
+            header: true,
+            complete: (results) => {data.push(results.data[0]);}
+        });
+        return data;
+    }
+
+    var summaries={};
+
+    function updateSelect(obj){
+        aladin.gotoRaDec(summaries[obj.value][0]["mid.ra"],
+                         summaries[obj.value][0]["mid.dec"]);
+        $('#infoDiv').html(summaries[obj.value][0].StreamName);
+    }
+
+    function generate_footprints(){
+        var master_file = galstreams_page+"galstreams/lib/master_log.txt";
+
+        fetch(master_file)
+          .then(response => response.text())
+          .then(text =>
+            {
+
+            var files_=[];
+            var names=[];
+            var I = text.split('\n');
+
+            for(var i=1; i<I.length; i++){
+                var T = I[i].split(/\s+/);
+                if(T[1]=='1'){
+                    files_.push('track.'+T[0]+'.'+T[3]+'.'+T[4]+'.ecsv');
+                    names.push(T[3]);
+                }
+
+            }
+
+            var select = document.getElementById("selectStreams");
+            var footprints=[];
+
+            var cat = A.catalog({color: 'red'});
+
+            for(var i=1;i<=files_.length;i++){
+                summaries[names[files_.length-i]]=get_summary(files_[files_.length-i].substring(0, files_[files_.length-i].length - 5)+'.summary.ecsv');
+                footprints.push(A.polygon(get_track(files_[files_.length-i])));
+                var overlay = A.graphicOverlay({color: getRandomColor(),
+                    lineWidth: 3, name:names[files_.length-i]});
+                aladin.addOverlay(overlay);
+                overlay.addFootprints([A.polygon(get_track(files_[files_.length-i]))]);
+                var el = document.createElement("option");
+                el.textContent = names[files_.length-i];
+                el.value = names[files_.length-i];
+                select.insertBefore(el, select.firstChild);
+            }
+            for(var i=1;i<=files_.length;i++){
+            console.log(summaries[names[files_.length-i]]);
+            cat.addSources([A.source(
+                                summaries[names[files_.length-i]][0]["mid.ra"],
+                                summaries[names[files_.length-i]][0]["mid.dec"],
+                                {'name':
+                                summaries[names[files_.length-i]][0].StreamName})]);
+            }
+            a.addCatalog(cat);
+        });
+    }
+
+    // define function triggered when  a source is hovered
+    aladin.on('objectHovered', function(object) {
+        if (object) {
+            $('#infoDiv').html(object.overlay.name);
+        }
+    });
+
+    // define function triggered when an object is clicked
+    var objClicked;
+    aladin.on('objectClicked', function(object) {
+        if (object) {
+            $('#infoDiv').html(object.overlay.name);
+        }
+    });
+
+    generate_footprints();
+
+</script>
